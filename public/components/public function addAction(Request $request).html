@@ -1,0 +1,26 @@
+public function addAction(Request $request)
+    {
+
+        $m = new Article();
+        $form= $this->createForm(ArticleType::class, $m);
+        $form->handleRequest($request);
+
+        if($form->isSubmitted() && $form->isValid())
+        {
+            $em = $this->getDoctrine()->getManager();
+
+            $file = $m->getPhoto();
+            $filename= md5(uniqid()) . '.' . $file->guessExtension();
+            $file->move($this->getParameter('photos_directory'), $filename);
+            $m->setPhoto($filename);
+            $m->setHeurepubl(new \DateTime('now'));
+
+            $em->persist($m);
+            $em->flush();
+
+            $this->addFlash('info', 'Created Successfully !');
+        }
+        return $this->render('@Article/front/add.html.twig', array(
+            "Form"=> $form->createView()
+        ));
+    }
